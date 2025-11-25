@@ -1,0 +1,5 @@
+if(EXISTS "/home/smellor/projects/audio/delay_crafter/build/Tests-b12d07c_tests.cmake")
+  include("/home/smellor/projects/audio/delay_crafter/build/Tests-b12d07c_tests.cmake")
+else()
+  add_test(Tests_NOT_BUILT-b12d07c Tests_NOT_BUILT-b12d07c)
+endif()
