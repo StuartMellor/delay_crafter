@@ -86,6 +86,7 @@ void PluginProcessor::changeProgramName (int index, const juce::String& newName)
 //==============================================================================
 void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    delayCrafter = std::make_unique<DelayCrafter>(sampleRate, getTotalNumInputChannels());
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::ignoreUnused (sampleRate, samplesPerBlock);
