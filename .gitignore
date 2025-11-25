@@ -10,6 +10,12 @@ CTestTestfile.cmake
 _deps
 **/.DS_Store
 
+# Build directory (entire build output)
+build/
+
+# clangd configuration (generated, not source)
+.clangd
+
 # It's nice to have the Builds folder exist, to remind us where it is
 Builds/*
 !Builds/.gitkeep
@@ -28,3 +34,6 @@ cmake-build-debug
 cmake-build-release
 cmake-build-relwithdebinfo
 packaging/Output/*
+
+.cache
+*.cache*
