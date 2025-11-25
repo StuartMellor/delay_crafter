@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "intelliSenseMode": "msvc-x64",
+            "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.38.33130/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/JUCE/modules",
+                "${workspaceFolder}/modules/clap-juce-extensions",
+                "${workspaceFolder}/modules/melatonin_inspector",
+                "${workspaceFolder}/build/juce_binarydata_Assets"
+            ],
+            "defines": [
+                "JucePlugin_Build_VST3=1",
+                "JucePlugin_Build_Standalone=1",
+                "JucePlugin_Name=\"Delay Crafter\"",
+                "JUCE_MODULE_AVAILABLE_juce_audio_processors=1",
+                "JUCE_MODULE_AVAILABLE_juce_audio_utils=1",
+                "JUCE_MODULE_AVAILABLE_juce_dsp=1",
+                "JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
+                "JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+                "DEBUG=1",
+                "_DEBUG=1"
+            ],
+            "windowsSdkVersion": "10.0.26100.0",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}
