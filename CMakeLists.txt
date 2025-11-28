@@ -63,6 +63,62 @@ add_subdirectory(modules/clap-juce-extensions EXCLUDE_FROM_ALL)
 # This adds the melatonin inspector module
 add_subdirectory (modules/melatonin_inspector)
 
+file(GLOB BX_SOURCES
+    extern/bx/src/*.cpp
+)
+
+file(GLOB BIMG_SOURCES
+    extern/bimg/src/*.cpp
+)
+
+file(GLOB BIMG_TINYEXR_MINIZ
+    extern/bimg/3rdparty/tinyexr/deps/miniz/*.c
+)
+
+add_library(bgfx_amalgamated STATIC
+    extern/bgfx/src/amalgamated.cpp
+    ${BX_SOURCES}
+    ${BIMG_SOURCES}
+        ${BIMG_TINYEXR_MINIZ}
+)
+
+target_compile_features(bgfx_amalgamated PUBLIC cxx_std_20)
+
+target_include_directories(bgfx_amalgamated PUBLIC
+    extern/bgfx/include
+    extern/bgfx/3rdparty
+    extern/bgfx/3rdparty/khronos 
+    extern/bx/include
+    extern/bimg/include
+    extern/bimg/3rdparty        
+    extern/bimg/3rdparty/tinyexr/deps
+    extern/bimg/3rdparty/tinyexr/deps/miniz  
+)
+# Just target bgfx_amalgamated
+if (MSVC)
+    target_compile_options(bgfx_amalgamated PUBLIC
+     /Zc:__cplusplus
+    /Zc:preprocessor)
+endif()
+
+# Optional: pass debug / renderer config defines through
+target_compile_definitions(bgfx_amalgamated PUBLIC
+    BX_CONFIG_DEBUG=$<IF:$<CONFIG:Debug>,1,0>
+    # add BGFX_CONFIG_* flags here if you need to tweak backends
+    BGFX_CONFIG_RENDERER_OPENGL=0
+)
+
+# Some platforms may need extra system libs; start minimal and
+# add more if the linker complains.
+if (WIN32)
+    target_link_libraries(bgfx_amalgamated PUBLIC
+        # user32
+        # gdi32
+        # ole32
+        # psapi
+    )
+endif()
+
 # See `docs/CMake API.md` in the JUCE repo for all config options
 juce_add_plugin("${PROJECT_NAME}"
     # Icons for the standalone app
@@ -73,7 +129,7 @@ juce_add_plugin("${PROJECT_NAME}"
     BUNDLE_ID "${BUNDLE_ID}"
 
     # On MacOS, plugin is copied to /Users/yourname/Library/Audio/Plug-Ins/
-    COPY_PLUGIN_AFTER_BUILD TRUE
+    COPY_PLUGIN_AFTER_BUILD FALSE
 
     # Change me!
     # A four-character plugin id
@@ -154,7 +210,9 @@ target_link_libraries(SharedCode
     juce_gui_extra
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
+    juce::juce_recommended_warning_flags
+    bgfx_amalgamated
+    )
 
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)

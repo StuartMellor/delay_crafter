@@ -1,8 +1,9 @@
 #pragma once
 
-#include "PluginProcessor.h"
 #include "BinaryData.h"
+#include "PluginProcessor.h"
 #include "melatonin_inspector/melatonin_inspector.h"
+#include "graphics/BgfxComponent.h"
 
 //==============================================================================
 class PluginEditor : public juce::AudioProcessorEditor
@@ -21,5 +22,7 @@ private:
     PluginProcessor& processorRef;
     std::unique_ptr<melatonin::Inspector> inspector;
     juce::TextButton inspectButton { "Inspect the UI" };
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor);
+    std::unique_ptr<juce::Drawable> svgtest;
+    BgfxComponent bgfxView;
 };
