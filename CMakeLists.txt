@@ -63,23 +63,106 @@ add_subdirectory(modules/clap-juce-extensions EXCLUDE_FROM_ALL)
 # This adds the melatonin inspector module
 add_subdirectory (modules/melatonin_inspector)
 
-file(GLOB BX_SOURCES
-    extern/bx/src/*.cpp
+add_library(bx STATIC
+    extern/bx/src/amalgamated.cpp
 )
 
-file(GLOB BIMG_SOURCES
-    extern/bimg/src/*.cpp
+target_include_directories(bx PUBLIC
+    extern/bx/include
+    extern/bx/3rdparty
 )
 
-file(GLOB BIMG_TINYEXR_MINIZ
-    extern/bimg/3rdparty/tinyexr/deps/miniz/*.c
+if (WIN32)
+    target_include_directories(bx PUBLIC extern/bx/include/compat/msvc)
+endif()
+
+target_compile_features(bx PUBLIC cxx_std_20)
+
+target_compile_definitions(bx PUBLIC
+    BX_CONFIG_DEBUG=$<IF:$<CONFIG:Debug>,1,0>
+)
+
+if (MSVC)
+    target_compile_options(bx PUBLIC /Zc:__cplusplus /Zc:preprocessor /permissive)
+    target_compile_definitions(bx PUBLIC 
+        __STDC_FORMAT_MACROS
+        ENTRY_CONFIG_IMPLEMENT_MAIN=0
+    )
+endif()
+
+add_library(bimg STATIC
+    extern/bimg/src/image.cpp
+    extern/bimg/src/image_gnf.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_averages_and_directions.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_block_sizes.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_color_quantize.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_color_unquantize.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_compress_symbolic.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_compute_variance.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_decompress_symbolic.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_diagnostic_trace.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_entry.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_find_best_partitioning.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_ideal_endpoints_and_weights.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_image.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_integer_sequence.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_mathlib.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_mathlib_softfloat.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_partition_tables.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_percentile_tables.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_pick_best_endpoint_format.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_quantization.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_symbolic_physical.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_weight_align.cpp
+    extern/bimg/3rdparty/astc-encoder/source/astcenc_weight_quant_xfer_tables.cpp
+)
+
+target_include_directories(bimg PUBLIC
+    extern/bimg/include
+    extern/bimg/3rdparty
+    # Add the include folder so astcenc.h is found
+    extern/bimg/3rdparty/astc-encoder/include 
+    extern/bimg/3rdparty/astc-encoder/source
+)
+
+target_link_libraries(bimg PUBLIC bx)
+target_compile_features(bimg PUBLIC cxx_std_20)
+
+target_compile_definitions(bimg PUBLIC
+    BX_CONFIG_DEBUG=$<IF:$<CONFIG:Debug>,1,0>
+)
+
+if (MSVC)
+    target_compile_options(bimg PUBLIC /Zc:__cplusplus /Zc:preprocessor)
+endif()
+
+# Add meshoptimizer
+add_library(meshoptimizer STATIC
+    extern/bgfx/3rdparty/meshoptimizer/src/meshoptimizer.h
+    extern/bgfx/3rdparty/meshoptimizer/src/allocator.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/clusterizer.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/indexanalyzer.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/indexcodec.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/indexgenerator.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/overdrawoptimizer.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/partition.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/quantization.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/rasterizer.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/simplifier.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/spatialorder.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/stripifier.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/vcacheoptimizer.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/vertexcodec.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/vertexfilter.cpp
+    extern/bgfx/3rdparty/meshoptimizer/src/vfetchoptimizer.cpp
+)
+
+target_include_directories(meshoptimizer PUBLIC
+    extern/bgfx/3rdparty/meshoptimizer/src
 )
 
 add_library(bgfx_amalgamated STATIC
     extern/bgfx/src/amalgamated.cpp
-    ${BX_SOURCES}
-    ${BIMG_SOURCES}
-        ${BIMG_TINYEXR_MINIZ}
 )
 
 target_compile_features(bgfx_amalgamated PUBLIC cxx_std_20)
@@ -87,37 +170,33 @@ target_compile_features(bgfx_amalgamated PUBLIC cxx_std_20)
 target_include_directories(bgfx_amalgamated PUBLIC
     extern/bgfx/include
     extern/bgfx/3rdparty
-    extern/bgfx/3rdparty/khronos 
-    extern/bx/include
-    extern/bimg/include
-    extern/bimg/3rdparty        
-    extern/bimg/3rdparty/tinyexr/deps
-    extern/bimg/3rdparty/tinyexr/deps/miniz  
+    extern/bgfx/3rdparty/khronos
 )
-# Just target bgfx_amalgamated
+
+target_link_libraries(bgfx_amalgamated PUBLIC bx bimg)
+
 if (MSVC)
-    target_compile_options(bgfx_amalgamated PUBLIC
-     /Zc:__cplusplus
-    /Zc:preprocessor)
+    target_compile_options(bgfx_amalgamated PUBLIC /Zc:__cplusplus /Zc:preprocessor)
 endif()
 
-# Optional: pass debug / renderer config defines through
 target_compile_definitions(bgfx_amalgamated PUBLIC
     BX_CONFIG_DEBUG=$<IF:$<CONFIG:Debug>,1,0>
-    # add BGFX_CONFIG_* flags here if you need to tweak backends
     BGFX_CONFIG_RENDERER_OPENGL=0
+    BGFX_CONFIG_RENDERER_DIRECT3D11=0
+    BGFX_CONFIG_RENDERER_VULKAN=1
 )
 
-# Some platforms may need extra system libs; start minimal and
-# add more if the linker complains.
 if (WIN32)
+    # Find Vulkan
+    find_package(Vulkan REQUIRED)
+    
     target_link_libraries(bgfx_amalgamated PUBLIC
-        # user32
-        # gdi32
-        # ole32
-        # psapi
+        gdi32
+        psapi
+        Vulkan::Vulkan
     )
 endif()
+
 
 # See `docs/CMake API.md` in the JUCE repo for all config options
 juce_add_plugin("${PROJECT_NAME}"
@@ -159,7 +238,6 @@ clap_juce_extensions_plugin(TARGET "${PROJECT_NAME}"
 # Enable fast math, C++20 and a few other target defaults
 include(SharedCodeDefaults)
 
-
 # Manually list all .h and .cpp files for the plugin
 # If you are like me, you'll use globs for your sanity.
 # Just ensure you employ CONFIGURE_DEPENDS so the build system picks up changes
@@ -168,8 +246,59 @@ include(SharedCodeDefaults)
 file(GLOB_RECURSE SourceFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/source/*.h")
 target_sources(SharedCode INTERFACE ${SourceFiles})
 
+# Add include directories to SharedCode
+target_include_directories(SharedCode INTERFACE
+    "${CMAKE_CURRENT_SOURCE_DIR}/source"
+    "${CMAKE_CURRENT_SOURCE_DIR}/extern/bx/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/extern/bx/3rdparty"
+    "${CMAKE_CURRENT_SOURCE_DIR}/extern/bgfx/examples/common" # for entry/entry.h etc
+)
+
 # Adds a BinaryData target for embedding assets into the binary
 include(Assets)
+
+# Compile bgfx shaders
+include(CompileShaders)
+
+set(SHADER_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/compiled_shaders")
+
+# Compile vertex and fragment shaders
+compile_shader(
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/vs_triangle.sc"
+    "vertex"
+    "${SHADER_OUTPUT_DIR}"
+)
+
+compile_shader(
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/fs_triangle.sc"
+    "fragment"
+    "${SHADER_OUTPUT_DIR}"
+)
+
+# Create a custom target for shaders
+add_custom_target(CompiledShaders ALL
+    DEPENDS 
+        "${SHADER_OUTPUT_DIR}/vs_triangle.bin"
+        "${SHADER_OUTPUT_DIR}/fs_triangle.bin"
+    COMMENT "Building shaders"
+)
+
+juce_add_binary_data(CompiledShaderData
+    SOURCES
+        "${SHADER_OUTPUT_DIR}/vs_triangle.bin"
+        "${SHADER_OUTPUT_DIR}/fs_triangle.bin"
+    # 1. This generates the file as "CompiledShaderData.h" instead of "BinaryData.h"
+    HEADER_NAME "CompiledShaderData.h"
+    # 2. This puts the variables in the "ShaderData" namespace (e.g. ShaderData::vs_triangle_bin)
+    #    so they don't conflict with the standard "BinaryData" namespace used by Assets.
+    NAMESPACE "ShaderData"
+)
+
+add_dependencies(CompiledShaderData CompiledShaders)
+set_target_properties(CompiledShaderData PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+
+# Make sure SharedCode can find the generated header
+target_include_directories(SharedCode INTERFACE "${CMAKE_CURRENT_BINARY_DIR}/juce_binarydata_CompiledShaderData/JuceLibraryCode")
 
 # MacOS only: Cleans up folder and target organization on Xcode.
 include(XcodePrettify)
@@ -202,6 +331,7 @@ target_compile_definitions(SharedCode
 target_link_libraries(SharedCode
     INTERFACE
     Assets
+    CompiledShaderData
     melatonin_inspector
     juce_audio_utils
     juce_audio_processors
@@ -211,8 +341,11 @@ target_link_libraries(SharedCode
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
+    bx
+    bimg
     bgfx_amalgamated
-    )
+    meshoptimizer
+)
 
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
